@@ -1,0 +1,75 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# ==============================
+# Environment / Secrets
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+# IDE / Editor
+# ==============================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==============================
+# OS generated files
+# ==============================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==============================
+# Logs
+# ==============================
+*.log
+
+# ==============================
+# Testing / Coverage
+# ==============================
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ==============================
+# Temporary files
+# ==============================
+*.tmp
+*.temp
+*.bak
+
+# ==============================
+# Generated / Uploaded files
+# ==============================
+uploads/
+output/
+outputs/
+temp/
+tmp/
+
+# ==============================
+# Large / Local test files
+# ==============================
+*.mp4
+*.wav
+*.zip
+
+# ==============================
+# Jupyter
+# ==============================
+.ipynb_checkpoints/
