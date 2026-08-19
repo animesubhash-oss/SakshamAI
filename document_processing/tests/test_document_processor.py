@@ -35,12 +35,13 @@ class ProcessDocumentTests(unittest.TestCase):
         mock_result.error = None
         mock_result.processing_time_seconds = 0
         mock_result.to_dict.return_value = {
-            "content": [
-                {
-                    "page": 1,
-                    "text": "A lesson"
-                }
-            ]
+            "success": True,
+            "filename": "lesson.pdf",
+            "file_type": "pdf",
+            "full_text": "A lesson",
+            "pages": [
+                {"page_number": 1, "method": "native", "char_count": 8}
+            ],
         }
 
         extract_pdf.return_value = mock_result
@@ -56,13 +57,10 @@ class ProcessDocumentTests(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.file_type, "pdf")
         self.assertEqual(
-            result.to_dict()["content"],
+            result.to_dict()["pages"],
             [
-                {
-                    "page": 1,
-                    "text": "A lesson"
-                }
-            ]
+                {"page_number": 1, "method": "native", "char_count": 8}
+            ],
         )
 
     @patch("document_processor.extract_pdf")
@@ -95,6 +93,39 @@ class ProcessDocumentTests(unittest.TestCase):
             result.error,
             "Failed to extract PDF content."
         )
+
+    @patch("document_processor.extract_image")
+    def test_routes_image_to_extract_image(self, extract_image):
+        """Image files should be routed to extract_image()."""
+
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.filename = "photo.png"
+        mock_result.file_type = "image"
+        mock_result.pages = [PageResult(1, "Scanned text", "ocr")]
+        mock_result.full_text = "Scanned text"
+        mock_result.warnings = []
+        mock_result.error = None
+        mock_result.processing_time_seconds = 0
+
+        extract_image.return_value = mock_result
+
+        result = process_document(b"imgdata", "photo.png", ocr_lang="eng+hin")
+
+        extract_image.assert_called_once_with(
+            b"imgdata",
+            "photo.png",
+            "eng+hin"
+        )
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.file_type, "image")
+
+    def test_records_processing_time(self):
+        """process_document should always populate processing_time_seconds."""
+        result = process_document(b"data", "lesson.docx")
+        self.assertIsInstance(result.processing_time_seconds, float)
+        self.assertGreaterEqual(result.processing_time_seconds, 0)
 
 
 if __name__ == "__main__":
