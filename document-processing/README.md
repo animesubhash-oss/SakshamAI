@@ -1,39 +1,61 @@
-# SakshamAI
+# Document Processing Module
 
-**CEP Topic 39:** Assistive Learning Tools for Differently-Abled Students
-**Team:** 4 members, one module each — see `docs/` for the full plan.
+## Purpose
 
-## Project structure
+Extract educational content from documents and return clean, structured text for the Gemini core. This module does not generate notes, quizzes, flashcards, chatbot responses, or voice output.
 
-```
-sakshamai/
-├── document-processing/   Member 4 — PDF/image -> clean text (BUILT, tested, running)
-├── gemini-core/            Member 2 — notes / quiz / flashcards prompts
-├── chatbot-voice/          Member 3 — grounded chatbot + Adaptive Voice Mode
-├── ui/                     Member 4 — main interface, integrates everything
-└── docs/                   Project plan, architecture, report material
-```
+## Supported formats
 
-## Build order (per the plan's dependency chain)
+- PDF, including native text and scanned pages through OCR fallback
+- PNG, JPG/JPEG, WEBP, BMP, and TIFF images through OCR
 
-1. **document-processing** — done. Native PDF text extraction with OCR
-   fallback for scanned pages/images, exposed both as a Python module and a
-   FastAPI service (`/extract` endpoint). Tested against native-text PDFs,
-   scanned-image PDFs, and raw images.
-2. **gemini-core** — next. Takes `document-processing`'s output and generates
-   notes/quiz/flashcards.
-3. **chatbot-voice** — after gemini-core's prompting patterns are proven out.
-4. **ui** — integrates all three into one student session.
-
-## Quick start (document-processing, already working)
+## Installation
 
 ```bash
-cd document-processing
 pip install -r requirements.txt
-uvicorn api:app --reload --port 8001
-# in another terminal:
-curl -X POST http://localhost:8001/extract -F "file=@test_native.pdf"
 ```
 
-See `document-processing/README.md` for full details, known limitations, and
-integration notes for whoever picks up gemini-core next.
+Tesseract OCR must also be installed on the host system for scanned PDFs and images. Its language packs control the values accepted by `ocr_lang`.
+
+## Python usage
+
+```python
+from pathlib import Path
+from document_processor import process_document
+
+result = process_document(Path("AI.pdf").read_bytes(), "AI.pdf")
+structured_document = result.to_dict()
+```
+
+`process_document` accepts file bytes and a filename. The result contains:
+
+- `filename`
+- `file_type`
+- `page_count`
+- `content`, a list of `{page, text}` objects
+- `full_text`
+- extraction metadata, warnings, and errors
+
+## Pipeline
+
+1. `document_processor.py` detects the file type and coordinates processing.
+2. `pdf_processor.py` extracts PDF pages and uses OCR for empty or scanned pages.
+3. `image_processor.py` extracts text from image uploads with OCR.
+4. `text_cleaner.py` performs conservative whitespace and extraction-artifact cleanup.
+5. `document_models.py` provides the stable result format consumed by other modules.
+
+The cleaner preserves headings, paragraphs, and educational wording. It removes only common extraction noise such as repeated spaces, excess blank lines, and lone page-number lines.
+
+## HTTP service
+
+The optional `api.py` wrapper exposes the same result through `POST /extract` and `GET /health`:
+
+```bash
+uvicorn api:app --reload --port 8001
+```
+
+## Limitations
+
+- OCR quality depends on scan clarity and the installed Tesseract language packs.
+- Only PDF and image files are currently supported.
+- This module extracts and structures content; Gemini core owns all AI-generated learning materials.
