@@ -73,3 +73,8 @@ tmp/
 # Jupyter
 # ==============================
 .ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
