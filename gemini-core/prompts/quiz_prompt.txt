@@ -1,0 +1,49 @@
+Create exactly 5 multiple-choice questions from the educational document below.
+
+Rules:
+- Create exactly 5 questions.
+- Every question must be based ONLY on the document.
+- Each question must have exactly 4 options: A, B, C, D.
+- Give the correct answer for every question.
+- Do not use outside knowledge.
+- Do not create questions about information that is not present in the document.
+
+Use this format:
+
+Question 1: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A/B/C/D]
+
+Question 2: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A/B/C/D]
+
+Question 3: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A/B/C/D]
+
+Question 4: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A/B/C/D]
+
+Question 5: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A/B/C/D]
+
+Document:
+{document_text}
