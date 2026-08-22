@@ -4,7 +4,7 @@ Owner: Member 4
 
 Thin HTTP wrapper around document_processor.py so Member 2 (Gemini core)
 and Member 3 (chatbot) can call this as a service instead of importing
-Python directly. Keeps ownership boundaries clean per the task allocation.
+Python directly.
 
 Run:
     uvicorn api:app --reload --port 8001
@@ -47,10 +47,6 @@ async def extract(file: UploadFile = File(...), ocr_lang: str = "eng"):
     """
     Upload a PDF or image. Returns extracted + cleaned text plus per-page
     metadata (which pages used native extraction vs OCR, warnings, etc).
-
-    ocr_lang defaults to English. Pass "eng+hin" or "eng+mar" if the
-    material mixes English with Hindi/Marathi (requires those tesseract
-    language packs to be installed on the server).
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided.")
@@ -68,14 +64,6 @@ async def extract(file: UploadFile = File(...), ocr_lang: str = "eng"):
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
     result = process_document(contents, file.filename, ocr_lang=ocr_lang)
-
-    if not result.success:
-        # Still return 200 with the error inside the payload — this is a
-        # normal, expected outcome (e.g. blank scan, unsupported file),
-        # not a server crash. Let the UI layer (Member 4) decide how to
-        # surface it to the student, per the Demo Safety Plan.
-        return result.to_dict()
-
     return result.to_dict()
 
 

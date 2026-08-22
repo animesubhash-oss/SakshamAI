@@ -2,4 +2,3 @@ python-dotenv
 google-genai
 SpeechRecognition
 pyttsx3
-pypdf
