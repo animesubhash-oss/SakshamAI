@@ -1,4 +1,4 @@
 python-dotenv
-google-genai
+google-generativeai
 SpeechRecognition
 pyttsx3

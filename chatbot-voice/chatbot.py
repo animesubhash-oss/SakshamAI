@@ -36,7 +36,7 @@ from google import genai
 #     chatbot-voice/
 #       chatbot.py           <- this file
 
-CORE_PATH = Path(__file__).resolve().parent.parent / "document-processing"
+CORE_PATH = Path(__file__).resolve().parent.parent / "document_processing"
 sys.path.insert(0, str(CORE_PATH))
 
 try:
