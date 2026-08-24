@@ -2,3 +2,4 @@ python-dotenv
 google-generativeai
 SpeechRecognition
 pyttsx3
+reportlab==5.0.1

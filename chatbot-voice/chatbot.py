@@ -40,7 +40,7 @@ CORE_PATH = Path(__file__).resolve().parent.parent / "document_processing"
 sys.path.insert(0, str(CORE_PATH))
 
 try:
-    from document_processor import process_document
+    from document_processor import process_document #type: ignore
 except ImportError as e:
     raise ImportError(
         f"Could not import document_processor from {CORE_PATH}. "
