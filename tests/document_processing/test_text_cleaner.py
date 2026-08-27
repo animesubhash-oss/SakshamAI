@@ -2,9 +2,9 @@ import unittest
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from text_cleaner import clean_text
+from document_processing.text_cleaner import clean_text
 
 
 class CleanTextTests(unittest.TestCase):
