@@ -5,10 +5,10 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-from document_models import ProcessingResult
-from image_processor import extract_image
-from pdf_processor import extract_pdf
-
+from .document_models import ProcessingResult
+from .image_processor import extract_image
+from .pdf_processor import extract_pdf
+from .text_cleaner import clean_text
 SUPPORTED_PDF_EXTENSIONS = {".pdf"}
 SUPPORTED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"}
 
