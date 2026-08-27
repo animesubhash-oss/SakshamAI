@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 # raises ValueError at import time if GEMINI_API_KEY is missing.
 os.environ.setdefault("GEMINI_API_KEY", "test-key-not-real")
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "chatbot-voice"))
 
 # Patch genai.Client globally before importing chatbot, so no real
 # Gemini client is ever constructed.
@@ -79,11 +79,11 @@ class AskMethodTests(unittest.TestCase):
         bot = DocumentChatbot()
         self.assertEqual(bot.ask("   "), "Please enter a question.")
 
-    @patch("chatbot.client")
-    def test_ask_returns_model_answer_and_saves_history(self, mock_client):
+    @patch("chatbot._get_client")
+    def test_ask_returns_model_answer_and_saves_history(self, mock_get_client):
         mock_response = MagicMock()
         mock_response.text = "  The answer is 42.  "
-        mock_client.models.generate_content.return_value = mock_response
+        mock_get_client.return_value.chats.create.return_value.send_message.return_value = mock_response
 
         bot = DocumentChatbot()
         answer = bot.ask("What is the answer?")
@@ -93,33 +93,72 @@ class AskMethodTests(unittest.TestCase):
         self.assertEqual(bot.conversation_history[0]["role"], "user")
         self.assertEqual(bot.conversation_history[1]["role"], "assistant")
 
-    @patch("chatbot.client")
-    def test_ask_handles_quota_error(self, mock_client):
-        mock_client.models.generate_content.side_effect = Exception(
+    @patch("chatbot._get_client")
+    def test_ask_handles_quota_error(self, mock_get_client):
+        mock_get_client.return_value.chats.create.return_value.send_message.side_effect = Exception(
             "429 RESOURCE_EXHAUSTED: quota exceeded"
         )
         bot = DocumentChatbot()
         answer = bot.ask("Anything?")
         self.assertIn("quota", answer.lower())
 
-    @patch("chatbot.client")
-    def test_ask_handles_auth_error(self, mock_client):
-        mock_client.models.generate_content.side_effect = Exception(
+    @patch("chatbot._get_client")
+    def test_ask_handles_auth_error(self, mock_get_client):
+        mock_get_client.return_value.chats.create.return_value.send_message.side_effect = Exception(
             "403 PERMISSION_DENIED: API key invalid"
         )
         bot = DocumentChatbot()
         answer = bot.ask("Anything?")
         self.assertIn("API key", answer)
 
-    @patch("chatbot.client")
-    def test_ask_handles_empty_model_response(self, mock_client):
+    @patch("chatbot._get_client")
+    def test_ask_handles_empty_model_response(self, mock_get_client):
         mock_response = MagicMock()
         mock_response.text = "   "
-        mock_client.models.generate_content.return_value = mock_response
+        mock_get_client.return_value.chats.create.return_value.send_message.return_value = mock_response
 
         bot = DocumentChatbot()
         answer = bot.ask("Anything?")
-        self.assertEqual(answer, "I couldn't generate an answer.")
+        self.assertEqual(answer, "Gemini returned an empty answer.")
+
+    @patch("chatbot._get_client")
+    def test_document_grounding_instruction_is_sent(self, mock_get_client):
+        mock_response = MagicMock()
+        mock_response.text = "Information not available in the document."
+        mock_chat = mock_get_client.return_value.chats.create.return_value
+        mock_chat.send_message.return_value = mock_response
+
+        bot = DocumentChatbot()
+        bot.set_document(
+            "Photosynthesis uses sunlight, carbon dioxide and water.",
+            "lesson.txt",
+        )
+        answer = bot.ask("Who discovered photosynthesis?")
+
+        self.assertEqual(answer, "Information not available in the document.")
+        message = mock_chat.send_message.call_args.args[0]
+        self.assertIn("Photosynthesis uses sunlight", message)
+        self.assertIn("ONLY the current document", message)
+
+    @patch("chatbot._get_client")
+    def test_history_is_bounded_and_included_for_follow_up(self, mock_get_client):
+        first_response = MagicMock(text="Photosynthesis uses light to make food.")
+        second_response = MagicMock(text="It helps plants make food.")
+        mock_chat = mock_get_client.return_value.chats.create.return_value
+        mock_chat.send_message.side_effect = [first_response, second_response]
+
+        bot = DocumentChatbot()
+        bot.set_document(
+            "Photosynthesis uses sunlight to help plants make food.",
+            "lesson.txt",
+        )
+        bot.ask("What is photosynthesis?")
+        answer = bot.ask("Why is it important?")
+
+        self.assertEqual(answer, "It helps plants make food.")
+        self.assertLessEqual(len(bot.conversation_history), 10)
+        follow_up_message = mock_chat.send_message.call_args_list[1].args[0]
+        self.assertIn("What is photosynthesis?", follow_up_message)
 
 
 class LoadDocumentIntegrationTests(unittest.TestCase):

@@ -17,11 +17,17 @@ pip install -r requirements.txt
 
 Tesseract OCR must also be installed on the host system for scanned PDFs and images. Its language packs control the values accepted by `ocr_lang`.
 
+Examples:
+
+- Windows: install the Tesseract Windows package and add its install directory (commonly `C:\\Program Files\\Tesseract-OCR`) to `PATH`.
+- macOS: `brew install tesseract`
+- Debian/Ubuntu: `sudo apt install tesseract-ocr`
+
 ## Python usage
 
 ```python
 from pathlib import Path
-from document_processor import process_document
+from document_processing.document_processor import process_document
 
 result = process_document(Path("AI.pdf").read_bytes(), "AI.pdf")
 structured_document = result.to_dict()
@@ -51,7 +57,7 @@ The cleaner preserves headings, paragraphs, and educational wording. It removes 
 The optional `api.py` wrapper exposes the same result through `POST /extract` and `GET /health`:
 
 ```bash
-uvicorn api:app --reload --port 8001
+uvicorn document_processing.api:app --reload --port 8001
 ```
 
 ## Limitations
