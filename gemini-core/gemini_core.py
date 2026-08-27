@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 from google import genai
 
@@ -9,12 +11,8 @@ load_dotenv()
 # GEMINI API SETUP
 # ==========================================
 
-api_key = os.getenv("GEMINI_API_KEY")
-
-if not api_key:
-    raise ValueError("GEMINI_API_KEY is not set")
-
-client = genai.Client(api_key=api_key)
+PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
 
 # ==========================================
@@ -27,8 +25,13 @@ def load_prompt(file_path):
 
 def generate_content(prompt):
     try:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY is not set")
+
+        client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-3.6-flash",
+            model=GEMINI_MODEL,
             contents=prompt
         )
         return response.text
@@ -42,7 +45,7 @@ def generate_content(prompt):
 
 def generate_notes(document_text):
 
-    prompt = load_prompt("prompts/notes_prompt.txt")
+    prompt = load_prompt(PROMPTS_DIR / "notes_prompt.txt")
     prompt = prompt.replace("{document_text}", document_text)
 
     return generate_content(prompt)
@@ -54,7 +57,7 @@ def generate_notes(document_text):
 
 def generate_quiz(document_text):
 
-    prompt = load_prompt("prompts/quiz_prompt.txt")
+    prompt = load_prompt(PROMPTS_DIR / "quiz_prompt.txt")
     prompt = prompt.replace("{document_text}", document_text)
 
     return generate_content(prompt)
@@ -66,7 +69,7 @@ def generate_quiz(document_text):
 
 def generate_flashcards(document_text):
 
-    prompt = load_prompt("prompts/flashcards_prompt.txt")
+    prompt = load_prompt(PROMPTS_DIR / "flashcards_prompt.txt")
     prompt = prompt.replace("{document_text}", document_text)
 
     return generate_content(prompt)
@@ -81,45 +84,6 @@ Photosynthesis is the process by which green plants make their food
 using sunlight, carbon dioxide, and water. Chlorophyll absorbs sunlight
 and helps convert these materials into glucose and oxygen.
 """
-
-
-# ==========================================
-# TEST NOTES
-# ==========================================
-
-notes = generate_notes(text)
-
-print("\n==============================")
-print("       SIMPLIFIED NOTES")
-print("==============================")
-
-print(notes)
-
-
-# ==========================================
-# TEST QUIZ
-# ==========================================
-
-quiz = generate_quiz(text)
-
-print("\n==============================")
-print("       5-QUESTION QUIZ")
-print("==============================")
-
-print(quiz)
-
-
-# ==========================================
-# TEST FLASHCARDS
-# ==========================================
-
-flashcards = generate_flashcards(text)
-
-print("\n==============================")
-print("       FLASHCARDS")
-print("==============================")
-
-print(flashcards)
 
 
 # ==========================================
@@ -150,10 +114,27 @@ Question:
 {hallucination_question}
 """
 
-response = generate_content(hallucination_prompt)
+if __name__ == "__main__":
+    notes = generate_notes(text)
+    print("\n==============================")
+    print("       SIMPLIFIED NOTES")
+    print("==============================")
+    print(notes)
 
-print("\n==============================")
-print("       HALLUCINATION TEST")
-print("==============================")
+    quiz = generate_quiz(text)
+    print("\n==============================")
+    print("       5-QUESTION QUIZ")
+    print("==============================")
+    print(quiz)
 
-print(response)
+    flashcards = generate_flashcards(text)
+    print("\n==============================")
+    print("       FLASHCARDS")
+    print("==============================")
+    print(flashcards)
+
+    response = generate_content(hallucination_prompt)
+    print("\n==============================")
+    print("       HALLUCINATION TEST")
+    print("==============================")
+    print(response)

@@ -14,10 +14,12 @@ Endpoints:
     GET  /health          -> simple liveness check
 """
 
+import os
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from document_processor import process_document
+from document_processing.document_processor import process_document
 
 app = FastAPI(
     title="SakshamAI Document Processing Service",
@@ -25,11 +27,18 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS wide open for now — team is running everything locally during dev.
-# Tighten this (allow_origins=[...]) before any public deployment.
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
