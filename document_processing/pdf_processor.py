@@ -13,8 +13,8 @@ import pdfplumber
 import pymupdf as fitz  # PyMuPDF — used only for rendering scanned pages to images
 from PIL import Image
 
-from document_models import PageResult, ProcessingResult
-from text_cleaner import clean_text
+from .document_models import PageResult, ProcessingResult
+from .text_cleaner import clean_text
 
 # If native extraction yields fewer than this many characters on a page,
 # we assume it's a scanned/image-only page and OCR it instead.
@@ -27,7 +27,13 @@ OCR_RENDER_ZOOM = 2.0
 def _ocr_image(image: Image.Image, lang: str) -> str:
     import pytesseract
 
-    return pytesseract.image_to_string(image, lang=lang)
+    try:
+        return pytesseract.image_to_string(image, lang=lang)
+    except pytesseract.TesseractNotFoundError as error:
+        raise RuntimeError(
+            "Tesseract OCR is not installed or is not on PATH. "
+            "Install Tesseract and restart the application."
+        ) from error
 
 
 def extract_pdf(file_bytes: bytes, filename: str, ocr_lang: str = "eng") -> ProcessingResult:
@@ -69,6 +75,8 @@ def extract_pdf(file_bytes: bytes, filename: str, ocr_lang: str = "eng") -> Proc
                 except Exception as e:
                     result.pages.append(PageResult(page_num, "", "empty"))
                     result.warnings.append(f"Page {page_num}: OCR failed ({e}).")
+                    if str(e).startswith("Tesseract OCR"):
+                        result.error = str(e)
 
     except Exception as e:
         result.error = f"Failed while reading PDF pages: {e}"
@@ -81,7 +89,7 @@ def extract_pdf(file_bytes: bytes, filename: str, ocr_lang: str = "eng") -> Proc
     )
     result.full_text = clean_text(combined)
     result.success = len(result.full_text) > 0
-    if not result.success:
+    if not result.success and not result.error:
         result.error = "No extractable text found in this PDF."
 
     return result

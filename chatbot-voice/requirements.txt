@@ -1,5 +1,7 @@
 python-dotenv
-google-generativeai
+google-genai
 SpeechRecognition
+PyAudio
 pyttsx3
 reportlab==5.0.1
+elevenlabs
