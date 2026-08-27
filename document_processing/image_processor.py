@@ -7,8 +7,8 @@ import io
 import pytesseract
 from PIL import Image
 
-from document_models import PageResult, ProcessingResult
-from text_cleaner import clean_text
+from .document_models import PageResult, ProcessingResult
+from .text_cleaner import clean_text
 
 
 def extract_image(file_bytes: bytes, filename: str, ocr_lang: str = "eng") -> ProcessingResult:
@@ -21,6 +21,13 @@ def extract_image(file_bytes: bytes, filename: str, ocr_lang: str = "eng") -> Pr
 
     try:
         raw_text = pytesseract.image_to_string(image, lang=ocr_lang)
+    except pytesseract.TesseractNotFoundError as error:
+        result.error = (
+            "Tesseract OCR is not installed or is not on PATH. "
+            "Install Tesseract and restart the application."
+        )
+        result.warnings.append(str(error))
+        return result
     except Exception as error:
         result.error = f"OCR failed: {error}"
         return result

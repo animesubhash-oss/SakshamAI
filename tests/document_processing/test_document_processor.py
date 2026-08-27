@@ -3,10 +3,10 @@ import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from document_models import PageResult
-from document_processor import process_document
+from document_processing.document_models import PageResult
+from document_processing.document_processor import process_document
 
 
 class ProcessDocumentTests(unittest.TestCase):
@@ -19,7 +19,7 @@ class ProcessDocumentTests(unittest.TestCase):
         self.assertEqual(result.file_type, "unknown")
         self.assertIn("Supported", result.error)
 
-    @patch("document_processor.extract_pdf")
+    @patch("document_processing.document_processor.extract_pdf")
     def test_routes_pdf_and_returns_structured_content(self, extract_pdf):
         """PDF files should be routed to extract_pdf()."""
 
@@ -63,7 +63,7 @@ class ProcessDocumentTests(unittest.TestCase):
             ],
         )
 
-    @patch("document_processor.extract_pdf")
+    @patch("document_processing.document_processor.extract_pdf")
     def test_handles_pdf_extraction_failure(self, extract_pdf):
         """PDF extraction failures should be returned correctly."""
 
@@ -94,7 +94,7 @@ class ProcessDocumentTests(unittest.TestCase):
             "Failed to extract PDF content."
         )
 
-    @patch("document_processor.extract_image")
+    @patch("document_processing.document_processor.extract_image")
     def test_routes_image_to_extract_image(self, extract_image):
         """Image files should be routed to extract_image()."""
 
