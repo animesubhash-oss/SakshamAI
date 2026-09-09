@@ -1,0 +1,94 @@
+/* ============================================================
+   SakshamAI — Accessibility layer
+   Focus, text scaling, motion, screen-reader helpers.
+   ============================================================ */
+
+/* ---------- Visible keyboard focus everywhere ---------- */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sk-tab:focus-visible,
+.sk-option:focus-visible,
+.sk-tile:focus-visible {
+  outline-offset: -3px;
+}
+
+body.theme-contrast :focus-visible {
+  outline: 4px solid #000000;
+  outline-offset: 2px;
+}
+
+/* ---------- Skip link ---------- */
+.sk-skip {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -140%);
+  z-index: 100;
+  padding: 0.6rem 1.2rem;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 0 0 var(--radius-s) var(--radius-s);
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.sk-skip:focus {
+  transform: translate(-50%, 0);
+}
+
+/* ---------- Screen-reader only ---------- */
+.sk-sr {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Reading size (set on <html>) ---------- */
+html.size-large { font-size: 18px; }
+html.size-larger { font-size: 20.5px; }
+
+html.size-large body,
+html.size-larger body { line-height: 1.68; }
+
+/* ---------- Reduced motion ----------
+   Nothing in this interface communicates state through motion alone:
+   every animated element is paired with a text label, so switching
+   animation off never removes information. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+body.no-motion *,
+body.no-motion *::before,
+body.no-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+body.no-motion .sk-ring { display: none; }
+body.no-motion .sk-dots span { opacity: 1; }
+body.no-motion .sk-wave.is-active .sk-wave-bar { height: 22px; }
+body.no-motion .sk-tile:hover { transform: none; }
+
+/* ---------- Comfortable hit areas on touch ---------- */
+@media (pointer: coarse) {
+  .sk-btn.is-small { min-height: 42px; }
+  .sk-choice { min-height: 44px; }
+}

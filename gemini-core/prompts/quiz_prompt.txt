@@ -4,9 +4,11 @@ Rules:
 - Create exactly 5 questions.
 - Every question must be based ONLY on the document.
 - Each question must have exactly 4 options: A, B, C, D.
-- Give the correct answer for every question.
-- Do not use outside knowledge.
-- Do not create questions about information that is not present in the document.
+- Include one hidden grading line after each question's options using exactly
+	`Answer: A`, `Answer: B`, `Answer: C`, or `Answer: D`.
+- The application parses the grading lines and never displays them before submission.
+- Do NOT use outside knowledge.
+- Do NOT create questions about information that is not present in the document.
 
 Use this format:
 
@@ -15,35 +17,35 @@ A. [option]
 B. [option]
 C. [option]
 D. [option]
-Answer: [A/B/C/D]
+Answer: [A, B, C, or D]
 
 Question 2: [question]
 A. [option]
 B. [option]
 C. [option]
 D. [option]
-Answer: [A/B/C/D]
+Answer: [A, B, C, or D]
 
 Question 3: [question]
 A. [option]
 B. [option]
 C. [option]
 D. [option]
-Answer: [A/B/C/D]
+Answer: [A, B, C, or D]
 
 Question 4: [question]
 A. [option]
 B. [option]
 C. [option]
 D. [option]
-Answer: [A/B/C/D]
+Answer: [A, B, C, or D]
 
 Question 5: [question]
 A. [option]
 B. [option]
 C. [option]
 D. [option]
-Answer: [A/B/C/D]
+Answer: [A, B, C, or D]
 
 Document:
 {document_text}

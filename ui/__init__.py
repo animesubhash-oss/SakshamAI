@@ -1,0 +1,1 @@
+"""SakshamAI NiceGUI frontend package."""

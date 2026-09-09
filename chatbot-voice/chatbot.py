@@ -16,6 +16,7 @@ Features:
 
 import os
 import sys
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -93,7 +94,13 @@ def _get_client():
             f"Add it to {CHATBOT_ENV}."
         )
 
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(
+        api_key=api_key,
+        http_options=genai.types.HttpOptions(
+            timeout=REQUEST_TIMEOUT_MS,
+            retry_options=genai.types.HttpRetryOptions(attempts=1),
+        ),
+    )
     return client
 
 
@@ -105,10 +112,16 @@ TEXT_EXTENSIONS = {".txt"}
 
 MAX_DOCUMENT_CHARS = 400_000
 MAX_HISTORY_MESSAGES = 10
+TRANSIENT_RETRIES = 1
+REQUEST_TIMEOUT_MS = 30_000
 
 GEMINI_MODEL = os.getenv(
     "GEMINI_MODEL",
     "gemini-3.6-flash"
+)
+GEMINI_FALLBACK_MODEL = os.getenv(
+    "GEMINI_FALLBACK_MODEL",
+    "gemini-3.5-flash"
 )
 
 
@@ -327,11 +340,39 @@ If the answer is not present, respond exactly:
 
             print("\nThinking...")
 
-            self._create_chat()
-
-            response = self.chat.send_message(
-                message
-            )
+            response = None
+            for attempt in range(TRANSIENT_RETRIES + 1):
+                try:
+                    response = self.chat.send_message(message)
+                    break
+                except Exception as error:
+                    error_text = str(error).lower()
+                    is_fatal = (
+                        "401" in error_text
+                        or "403" in error_text
+                        or "404" in error_text
+                        or "api key" in error_text
+                        or "authentication" in error_text
+                        or "permission" in error_text
+                        or "quota" in error_text
+                        or "resource_exhausted" in error_text
+                        or "429" in error_text
+                    )
+                    is_transient = (
+                        "503" in error_text
+                        or "unavailable" in error_text
+                        or "service unavailable" in error_text
+                    )
+                    if is_fatal:
+                        raise
+                    if is_transient or attempt == TRANSIENT_RETRIES:
+                        response = _get_client().models.generate_content(
+                            model=GEMINI_FALLBACK_MODEL,
+                            contents=message,
+                            config={"system_instruction": SYSTEM_INSTRUCTION},
+                        )
+                        break
+                    time.sleep(2 ** attempt)
 
             if not response:
                 return (
