@@ -3,3 +3,6 @@ google-genai
 SpeechRecognition
 PyAudio
 elevenlabs
+nicegui
+streamlit
+bcrypt

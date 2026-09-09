@@ -63,6 +63,58 @@ def generate_quiz(document_text):
     return generate_content(prompt)
 
 
+def generate_quiz_for_topic(topic):
+    """Create a quiz from a subject chosen by the learner, without a document."""
+    prompt = f"""
+Create exactly 5 multiple-choice questions about this study topic: {topic}
+
+Rules:
+- Make the questions appropriate for a student.
+- Each question must have exactly 4 options labelled A, B, C, and D.
+- After each question's four options, add exactly one grading line in the form
+    Answer: A (or B, C, or D). The application stores this line privately and
+    does not display it before the learner submits an answer.
+- Use clear, factual language and do not ask trick questions.
+
+Use this format:
+Question 1: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A, B, C, or D]
+
+Question 2: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A, B, C, or D]
+
+Question 3: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A, B, C, or D]
+
+Question 4: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A, B, C, or D]
+
+Question 5: [question]
+A. [option]
+B. [option]
+C. [option]
+D. [option]
+Answer: [A, B, C, or D]
+"""
+    return generate_content(prompt)
+
+
 # ==========================================
 # GENERATE FLASHCARDS
 # ==========================================
@@ -73,6 +125,23 @@ def generate_flashcards(document_text):
     prompt = prompt.replace("{document_text}", document_text)
 
     return generate_content(prompt)
+
+
+def generate_notes_for_topic(topic):
+    """Create concise notes from a subject chosen by the learner."""
+    return generate_content(
+        f"Create clear, student-friendly revision notes about: {topic}. "
+        "Use headings and short bullet points. Explain the key ideas accurately."
+    )
+
+
+def generate_flashcards_for_topic(topic):
+    """Create revision flashcards from a subject chosen by the learner."""
+    return generate_content(
+        f"Create 10 concise revision flashcards about: {topic}. "
+        "Use exactly this format for each one:\n"
+        "Flashcard 1:\nQuestion: [question]\nAnswer: [answer]"
+    )
 
 
 # ==========================================

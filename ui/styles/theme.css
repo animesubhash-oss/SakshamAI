@@ -1,0 +1,183 @@
+/* ============================================================
+   SakshamAI — Design tokens & base typography
+   Visual language: "study paper" — warm paper surfaces,
+   serif headings, ink-blue accent, amber highlighter.
+   ============================================================ */
+
+:root {
+  --paper: #f4f1ea;
+  --paper-edge: #e8e2d5;
+  --surface: #fffdf8;
+  --surface-2: #faf7f0;
+  --surface-sunk: #f1ede3;
+
+  --ink: #1b1915;
+  --ink-2: #46423a;
+  --ink-3: #6f6959;
+
+  --line: #e0d9cb;
+  --line-strong: #c6bda9;
+
+  --accent: #27476e;
+  --accent-deep: #1a3251;
+  --accent-soft: #e8eef6;
+  --accent-line: #b9c9de;
+
+  --mark: #a45c07;
+  --mark-soft: #fbf0dd;
+
+  --ok: #1c6b4a;
+  --ok-soft: #e4f0ea;
+  --no: #932720;
+  --no-soft: #f9e9e6;
+
+  --radius-s: 8px;
+  --radius: 14px;
+  --radius-l: 22px;
+
+  --shadow-1: 0 1px 2px rgba(27, 25, 21, 0.06);
+  --shadow-2: 0 10px 28px -16px rgba(27, 25, 21, 0.28);
+
+  --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino,
+    "Times New Roman", serif;
+  --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+    "Helvetica Neue", Arial, sans-serif;
+
+  --measure: 66ch;
+  --stage-width: 1080px;
+  --tap: 44px;
+}
+
+/* ---------- Night theme ---------- */
+body.theme-night {
+  --paper: #14151a;
+  --paper-edge: #23252c;
+  --surface: #1c1e25;
+  --surface-2: #21242c;
+  --surface-sunk: #191b21;
+
+  --ink: #f1eee7;
+  --ink-2: #cfcabf;
+  --ink-3: #a19c92;
+
+  --line: #33363f;
+  --line-strong: #4a4e59;
+
+  --accent: #9dc0ea;
+  --accent-deep: #c3d7f2;
+  --accent-soft: #212936;
+  --accent-line: #3c4a5e;
+
+  --mark: #e0a45c;
+  --mark-soft: #2c2418;
+
+  --ok: #7ed3a8;
+  --ok-soft: #1a2a22;
+  --no: #f2a49c;
+  --no-soft: #2c1d1b;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 12px 30px -18px rgba(0, 0, 0, 0.8);
+}
+
+/* ---------- High contrast theme ---------- */
+body.theme-contrast {
+  --paper: #ffffff;
+  --paper-edge: #000000;
+  --surface: #ffffff;
+  --surface-2: #ffffff;
+  --surface-sunk: #ffffff;
+
+  --ink: #000000;
+  --ink-2: #000000;
+  --ink-3: #1a1a1a;
+
+  --line: #000000;
+  --line-strong: #000000;
+
+  --accent: #00337a;
+  --accent-deep: #001f4d;
+  --accent-soft: #ffffff;
+  --accent-line: #00337a;
+
+  --mark: #7a3d00;
+  --mark-soft: #ffffff;
+
+  --ok: #00552f;
+  --ok-soft: #ffffff;
+  --no: #8a0000;
+  --no-soft: #ffffff;
+
+  --shadow-1: none;
+  --shadow-2: none;
+}
+
+body.theme-contrast .sk-card,
+body.theme-contrast .sk-strip,
+body.theme-contrast .sk-tab,
+body.theme-contrast .sk-composer,
+body.theme-contrast .sk-sheet,
+body.theme-contrast .sk-option,
+body.theme-contrast .sk-tile {
+  border-width: 2px !important;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NiceGUI wrapper resets — the shell owns all spacing. */
+.nicegui-content {
+  padding: 0 !important;
+  gap: 0 !important;
+  width: 100%;
+  align-items: stretch;
+}
+
+.sk-display,
+.sk-title,
+.sk-heading {
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.22;
+  color: var(--ink);
+  margin: 0;
+}
+
+.sk-display { font-size: clamp(2rem, 4.6vw, 3.1rem); }
+.sk-title { font-size: clamp(1.4rem, 2.4vw, 1.85rem); }
+.sk-heading { font-size: 1.16rem; }
+
+.sk-eyebrow {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.sk-lead {
+  font-size: 1.06rem;
+  color: var(--ink-2);
+  max-width: var(--measure);
+  margin: 0;
+}
+
+.sk-text { color: var(--ink-2); margin: 0; }
+.sk-meta { font-size: 0.85rem; color: var(--ink-3); margin: 0; }
+.sk-mark { color: var(--mark); font-weight: 700; }

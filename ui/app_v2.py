@@ -1,5 +1,4 @@
 import sys
-import tempfile
 from pathlib import Path
 
 import streamlit as st
@@ -11,9 +10,17 @@ import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CHATBOT_PATH = PROJECT_ROOT / "chatbot-voice"
+DOCUMENT_PROCESSING_PATH = PROJECT_ROOT / "document_processing"
+GEMINI_PATH = PROJECT_ROOT / "gemini-core"
 
-if str(CHATBOT_PATH) not in sys.path:
-    sys.path.insert(0, str(CHATBOT_PATH))
+for module_path in (
+    PROJECT_ROOT,
+    CHATBOT_PATH,
+    DOCUMENT_PROCESSING_PATH,
+    GEMINI_PATH,
+):
+    if str(module_path) not in sys.path:
+        sys.path.insert(0, str(module_path))
 
 
 # ============================================================
@@ -21,7 +28,15 @@ if str(CHATBOT_PATH) not in sys.path:
 # ============================================================
 
 try:
-    from chatbot import DocumentChatbot, load_document_from_file
+    from chatbot import DocumentChatbot
+    from document_processing.document_processor import process_document
+    from gemini_core import generate_flashcards, generate_notes, generate_quiz
+
+    try:
+        from voice.stt import cleanup_temp_file, record_audio, transcribe_audio
+        from voice.tts import speak
+    except ImportError:
+        cleanup_temp_file = record_audio = transcribe_audio = speak = None
 
 except ImportError as error:
     st.error(
@@ -240,6 +255,12 @@ if "last_uploaded_file" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "Chat"
 
+if "mode" not in st.session_state:
+    st.session_state.mode = None
+
+if "study_content" not in st.session_state:
+    st.session_state.study_content = {}
+
 
 chatbot = st.session_state.chatbot
 
@@ -285,6 +306,21 @@ with st.sidebar:
 
 
     st.markdown("###")
+
+    if st.session_state.mode is None:
+        selected_mode = st.radio(
+            "Session mode",
+            ["Text Mode", "Speech Mode"],
+            index=0,
+        )
+        st.session_state.mode = (
+            "speech" if selected_mode == "Speech Mode" else "text"
+        )
+    else:
+        st.caption(
+            "Session mode: "
+            + ("Speech Mode" if st.session_state.mode == "speech" else "Text Mode")
+        )
 
 
     # --------------------------------------------------------
@@ -638,6 +674,32 @@ if st.session_state.page == "Chat":
             }
         )
 
+        if st.session_state.mode == "speech" and speak is not None:
+            if not speak(answer, save_audio=False):
+                st.warning("Speech playback failed; the answer is shown above.")
+
+    if st.session_state.mode == "speech":
+        if record_audio is None or transcribe_audio is None:
+            st.warning("Speech input is unavailable; type your question instead.")
+        elif st.button("🎙️ Ask by voice", use_container_width=True):
+            audio_file = record_audio()
+            voice_question = transcribe_audio(audio_file) if audio_file else None
+            cleanup_temp_file(audio_file)
+
+            if not voice_question:
+                st.warning("Speech input failed; type your question instead.")
+            else:
+                st.session_state.messages.append(
+                    {"role": "user", "content": voice_question}
+                )
+                voice_answer = chatbot.ask(voice_question)
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": voice_answer}
+                )
+                if speak is not None and not speak(voice_answer, save_audio=False):
+                    st.warning("Speech playback failed; the answer is shown above.")
+                st.rerun()
+
 
 # ============================================================
 # DOCUMENTS PAGE
@@ -690,34 +752,39 @@ elif st.session_state.page == "Documents":
                         "Processing your document..."
                     ):
 
-                        suffix = Path(
-                            uploaded_file.name
-                        ).suffix
-
-
-                        with tempfile.NamedTemporaryFile(
-                            delete=False,
-                            suffix=suffix,
-                        ) as temp_file:
-
-                            temp_file.write(
-                                uploaded_file.getbuffer()
-                            )
-
-                            temp_path = temp_file.name
-
-
-                        document_text, document_name = (
-                            load_document_from_file(
-                                temp_path
-                            )
+                        result = process_document(
+                            uploaded_file.getvalue(),
+                            uploaded_file.name,
                         )
 
+                        if not result.success:
+                            raise ValueError(
+                                result.error or "Document processing failed."
+                            )
 
-                        chatbot.set_document(
-                            document_text,
-                            document_name,
-                        )
+                        document_text = result.full_text.strip()
+                        if not document_text:
+                            raise ValueError(
+                                "No text could be extracted from this document."
+                            )
+
+                        document_name = result.filename
+                        chatbot.set_document(document_text, document_name)
+
+                        st.session_state.study_content = {}
+                        for label, generator in (
+                            ("notes", generate_notes),
+                            ("quiz", generate_quiz),
+                            ("flashcards", generate_flashcards),
+                        ):
+                            try:
+                                st.session_state.study_content[label] = generator(
+                                    document_text
+                                )
+                            except Exception as error:
+                                st.session_state.study_content[label] = (
+                                    f"Unable to generate {label}: {error}"
+                                )
 
 
                         st.session_state.last_uploaded_file = (
@@ -823,32 +890,29 @@ elif st.session_state.page == "Study":
 
 
         with col1:
-
-            st.info(
-                "📝\n\n"
-                "**Notes**\n\n"
-                "AI-generated notes can be connected "
-                "to the Gemini core module."
+            st.subheader("📝 Notes")
+            st.markdown(
+                st.session_state.study_content.get(
+                    "notes", "Notes are not available yet."
+                )
             )
 
 
         with col2:
-
-            st.info(
-                "🧠\n\n"
-                "**Flashcards**\n\n"
-                "Flashcards can be connected to "
-                "the Gemini core module."
+            st.subheader("🧠 Flashcards")
+            st.markdown(
+                st.session_state.study_content.get(
+                    "flashcards", "Flashcards are not available yet."
+                )
             )
 
 
         with col3:
-
-            st.info(
-                "❓\n\n"
-                "**Quiz**\n\n"
-                "Quiz generation can be connected "
-                "to the Gemini core module."
+            st.subheader("❓ Quiz")
+            st.markdown(
+                st.session_state.study_content.get(
+                    "quiz", "Quiz is not available yet."
+                )
             )
 
 
@@ -917,15 +981,15 @@ elif st.session_state.page == "Accessibility":
             "📖 Simplified Reading"
         )
 
-        st.checkbox(
-            "🔊 Voice Mode"
+        st.write(
+            "Current session mode: "
+            + ("Speech Mode" if st.session_state.mode == "speech" else "Text Mode")
         )
 
 
     st.info(
-        "These controls are currently UI options. "
-        "Voice and advanced accessibility functionality "
-        "can be connected to the voice module."
+        "Speech Mode uses the document-grounded chat answer and "
+        "falls back to displayed text when audio is unavailable."
     )
 
 

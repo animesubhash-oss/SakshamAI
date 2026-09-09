@@ -95,7 +95,7 @@ def get_mode_selection(max_attempts: int = 3):
         print("Invalid input. Please type 'speech' or 'normal'.")
 
 
-def main():
+def main(phrase_seconds: int | None = None):
 
     print("=" * 60)
     print("SakshamAI - Adaptive Voice Assistant")
@@ -122,7 +122,8 @@ def main():
             print("\n" + "-" * 60)
 
             if mode == "speech":
-                audio_file = record_audio(duration_limit=int(os.getenv("VOICE_PHRASE_SECONDS", "12")))
+                configured_seconds = phrase_seconds or int(os.getenv("VOICE_PHRASE_SECONDS", "12"))
+                audio_file = record_audio(duration_limit=configured_seconds)
 
                 if not audio_file:
                     print("No speech detected. Please try again.")
