@@ -80,3 +80,6 @@ venv/
 .env
 .env.*
 !.env.example
+
+sakshamai.db
+.sakshamai/
