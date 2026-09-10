@@ -6,3 +6,4 @@ elevenlabs
 nicegui
 streamlit
 bcrypt
+pymongo
