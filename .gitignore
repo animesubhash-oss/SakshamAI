@@ -83,3 +83,6 @@ venv/
 
 sakshamai.db
 .sakshamai/
+
+.sakshamai_auth_store.json
+*.mp3
